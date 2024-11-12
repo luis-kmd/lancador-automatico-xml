@@ -1,11 +1,11 @@
 import os
 import sys
-from tela import Ui_Dialog as tela
 from PySide6.QtWidgets import QApplication, QFileDialog, QDialog, QProgressBar, QPlainTextEdit
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, QThread, Signal, Slot
 from main import processar_xmls
+from program_ui import Ui_Dialog
 
 # Configure o atributo antes de criar QApplication
 QApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
@@ -34,13 +34,11 @@ class WorkerThread(QThread):
 class Lancador(QDialog):
     def __init__(self):
         super().__init__()  # Chamada correta ao construtor da classe base
-        self.loader = QUiLoader()
-        # Abra o arquivo .ui
         # Carregue o arquivo ui que foi transformado em py
-        self.ui = tela()
-        self.ui.setupUi(self)  # Configura a interface
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)        
         self.show()
-
+    
         # Definindo função dos botões
         self.botao_Selecionar = self.ui.SelecionarPasta
         self.botao_Lancar = self.ui.RealizarLancamento
@@ -66,6 +64,21 @@ class Lancador(QDialog):
             raise ValueError("QPlainTextEdit não encontrado. Verifique o nome do widget no arquivo .ui.")
         self.plain_text_edit.setPlainText("")  # Inicialmente vazio
 
+        self.barra_progresso.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid rgb(248, 230, 255);
+                border-radius: 5px;
+                text-align: center;
+                background-color: #e6e6e6; /* cor do fundo da barra */
+            }
+
+            QProgressBar::chunk {
+                background-color: #00FF00; /* cor preenchida da barra */
+                border-radius: 5px; /* deixa o preenchimento arredondado */
+                animation: progress-animation 1s ease-in-out infinite; /* animação suave */
+            }
+        """)
+
     def selecionarPasta(self):
         folder = QFileDialog.getExistingDirectory(self, "Selecione a pasta")
         if folder:
@@ -82,7 +95,6 @@ class Lancador(QDialog):
         self.plain_text_edit.appendPlainText(texto)  # Atualiza o QPlainTextEdit
 
     def realizarLancamento(self):
-        # Verifica se a pasta foi selecionada
         if not hasattr(self, 'pasta_selecionada') or not self.pasta_selecionada:
             print("Nenhuma pasta selecionada!")
             return
